@@ -1,0 +1,44 @@
+name: Firmware Dump
+
+on:
+  workflow_dispatch:
+    inputs:
+      ROM_URL:
+        description: "Accessible ROM URL"
+        required: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+       - name: Checkouts
+         uses: actions/checkout@v3
+
+       - name: Clone Phoenix Firmware Dumper
+         run: |
+              git clone https://github.com/DroidDumps/phoenix_firmware_dumper
+
+       - name: Setup dumper environment
+         working-directory: phoenix_firmware_dumper
+         run: |
+              sudo bash setup.sh
+              git config --global user.name "Hendra Manudinata"
+              git config --global user.email "116422610+manoedinata@users.noreply.github.com"
+
+       - name: Setup config envs
+         working-directory: phoenix_firmware_dumper
+         run: |
+              echo "manoe-firmware" > .github_orgname
+              echo "${{ secrets.FIRMDUMP_CI_TOKEN }}" > .github_token
+              echo "${{ secrets.BOT_TOKEN }}" > .tg_token
+              echo "${{ secrets.CHAT_ID }}" > .tg_chat
+
+       - name: Running Phoenix Firmware Dumper
+         working-directory: phoenix_firmware_dumper
+         run: |
+              ./dumper.sh "${{ github.event.inputs.ROM_URL }}"
